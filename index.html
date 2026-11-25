@@ -1,0 +1,498 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>エリトラ記録</title>
+<style>
+/* 配色：青系の単色アクセント＋橙（強調）。レイアウト：スマホ片手操作を想定した1カラム、下部タブ */
+:root{--bg:#f3f6f8;--card:#fff;--text:#1b2733;--sub:#667785;--main:#1769aa;--main-t:#fff;--line:#dbe3e9;--warn:#b3402f;--bar:#4a97d4;--hot:#e08a1e}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#10161b;--card:#192229;--text:#e5edf2;--sub:#8ea0ad;--main:#4aa0e0;--main-t:#04121d;--line:#2a3640;--warn:#e0725f;--bar:#4aa0e0;--hot:#f0a94a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#10161b;--card:#192229;--text:#e5edf2;--sub:#8ea0ad;--main:#4aa0e0;--main-t:#04121d;--line:#2a3640;--warn:#e0725f;--bar:#4aa0e0;--hot:#f0a94a;color-scheme:dark}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.5 "Yu Gothic UI","Hiragino Sans","Meiryo",sans-serif}
+main{max-width:720px;margin:0 auto;padding-block:14px 90px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,select{font:inherit;color:inherit}
+.btn{background:var(--main);color:var(--main-t);border:0;border-radius:10px;padding:10px 16px;cursor:pointer}
+.btn.sub{background:transparent;color:var(--main);border:1px solid var(--main)}
+.btn.del{background:transparent;color:var(--warn);border:1px solid var(--warn)}
+.btn.sm{padding:4px 10px;font-size:13px}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:5;display:flex;background:var(--card);border-top:1px solid var(--line);padding:0 env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
+nav button{flex:1;padding:16px 0;background:none;border:0;border-top:3px solid transparent;color:var(--sub);font-size:14px;cursor:pointer}
+nav button.on{color:var(--main);font-weight:bold;border-top-color:var(--main)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:12px}
+h2{font-size:16px;margin:0 0 8px}
+.meta{color:var(--sub);font-size:13px}
+.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.big{font-size:40px;font-weight:bold;line-height:1}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.lure{position:relative;text-align:left;background:var(--card);border:2px solid var(--line);border-radius:14px;padding:12px 12px 10px;min-height:92px;cursor:pointer;user-select:none;touch-action:manipulation}
+.lure:active{transform:scale(.97);border-color:var(--main)}
+.lure .n{font-weight:bold;font-size:16px;word-break:break-all}
+.lure .d{color:var(--sub);font-size:12px}
+.lure .c{position:absolute;right:10px;top:8px;font-size:26px;font-weight:bold;color:var(--main)}
+.sw{display:inline-block;width:12px;height:12px;border-radius:50%;border:1px solid #0004;vertical-align:-1px;margin-right:4px}
+.row{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line)}
+.row:last-child{border:0}
+.row .g{flex:1;min-width:0}
+input[type=text],input[type=number],input[type=datetime-local],input[type=time],select{width:100%;padding:9px;border:1px solid var(--line);border-radius:10px;background:var(--card)}
+label{display:block;font-size:13px;color:var(--sub);margin:10px 0 3px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bar{display:flex;align-items:center;gap:8px;margin:5px 0;font-size:14px}
+.bar .l{width:38%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .t{flex:1;background:var(--line);border-radius:6px;height:18px;overflow:hidden}
+.bar .t i{display:block;height:100%;background:var(--bar);border-radius:6px}
+.bar .v{width:64px;text-align:right;font-variant-numeric:tabular-nums}
+.hours{display:flex;align-items:flex-end;gap:3px;height:110px;margin-top:6px}
+.hours div{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;height:100%;font-size:10px;color:var(--sub)}
+.hours i{display:block;width:100%;background:var(--bar);border-radius:3px 3px 0 0;min-height:0}
+.hours i.top{background:var(--hot)}
+.toast{position:fixed;left:50%;bottom:calc(72px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:#222;color:#fff;border-radius:24px;padding:10px 16px;z-index:30;display:flex;gap:12px;align-items:center;box-shadow:0 4px 12px #0006;max-width:92vw}
+.toast button{background:none;border:0;color:#7fc4ff;font-weight:bold;cursor:pointer}
+.empty{text-align:center;color:var(--sub);padding:28px 0}
+.hidden{display:none}
+.seg{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.seg button{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:4px 12px;font-size:13px;cursor:pointer}
+.seg button.on{background:var(--main);color:var(--main-t);border-color:var(--main)}
+.sheet{position:fixed;inset:0;z-index:20;background:var(--bg);overflow:auto}
+.sheet .in{max-width:720px;margin:0 auto;padding:calc(12px + env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) calc(40px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.sheet .hd{position:sticky;top:0;background:var(--bg);padding:6px 0 10px;z-index:2}
+.dlg{position:fixed;inset:0;z-index:40;background:#0008;display:flex;align-items:center;justify-content:center;padding:16px}
+.dlg .box{background:var(--card);color:var(--text);border-radius:14px;padding:18px;max-width:420px;width:100%}
+.dlg .box p{margin:0 0 4px}
+.dlg .actions{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+textarea{width:100%;padding:9px;border:1px solid var(--line);border-radius:10px;background:var(--card);font:inherit;color:inherit}
+.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.chip{border:1px solid var(--line);background:var(--card);border-radius:20px;padding:8px 14px;cursor:pointer;text-align:left}
+.chip.on{background:var(--main);color:var(--main-t);border-color:var(--main)}
+.pick{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer}
+.pick:active{border-color:var(--main)}
+.pick small{display:block;color:var(--sub)}
+.pick.done{border-color:var(--main);background:color-mix(in srgb,var(--main) 10%,var(--card))}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
+.catb{position:relative;border:2px solid var(--line);background:var(--card);border-radius:12px;padding:14px 4px;min-height:58px;font-size:13px;font-weight:bold;cursor:pointer;touch-action:manipulation}
+.catb.on{background:var(--main);color:var(--main-t);border-color:var(--main)}
+.catb span{position:absolute;top:2px;right:6px;font-size:12px;opacity:.85}
+.sec{font-size:13px;font-weight:bold;color:var(--sub);margin:14px 0 6px}
+.badge{display:inline-block;border-radius:6px;padding:0 8px;margin-left:6px;font-size:12px;background:var(--hot);color:#1b1b1b}
+.f-note{width:100%}
+input[type=text]#lastNote,input[type=text]#en{margin-top:8px}
+.lure{min-height:72px}
+.lure .d{display:-webkit-box;line-clamp:2;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+</style>
+</head>
+<body>
+<main id="app"></main>
+<nav>
+  <button data-t="rec">記録</button>
+  <button data-t="stats">集計</button>
+  <button data-t="lures">ルアー</button>
+  <button data-t="data">データ</button>
+</nav>
+<script src="lures-data.js"></script>
+<script>
+// ===== データ保存（localStorage：テキストのみで軽量） =====
+const KEY = 'area-trout-log-v1';
+let S = {lures:[], sessions:[], catches:[], activeSession:null};
+try { const j = localStorage.getItem(KEY); if (j) S = Object.assign(S, JSON.parse(j)); } catch(e){}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch(e){ toast('保存に失敗しました。容量不足の可能性があります。'); } };
+const uid = () => (crypto.randomUUID ? crypto.randomUUID() : String(Date.now())+Math.random());
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const p2 = (n) => String(n).padStart(2,'0');
+const isoLocal = (d) => `${d.getFullYear()}-${p2(d.getMonth()+1)}-${p2(d.getDate())}T${p2(d.getHours())}:${p2(d.getMinutes())}`;
+const hm = (iso) => iso.slice(11,16);
+const ymd = (iso) => iso.slice(0,10);
+const lureById = (id) => S.lures.find(l => l.id === id);
+const lureLabel = (l) => l ? `${l.brand?l.brand+' / ':''}${l.name}${l.weight?` ${l.weight}g`:''}${l.color?` (${l.color})`:''}` : '(削除済みルアー)';
+const swatch = (l) => l && l.swatch ? `<span class="sw" style="background:${esc(l.swatch)}"></span>` : '';
+
+let tab = 'rec';
+let range = 'all';           // 集計の期間
+let toastTimer;
+const $app = document.getElementById('app');
+
+// ===== トースト =====
+function toast(msg, undoFn){
+  document.querySelector('.toast')?.remove();
+  clearTimeout(toastTimer);
+  const t = document.createElement('div'); t.className = 'toast';
+  t.innerHTML = `<span>${msg}</span>` + (undoFn ? '<button>取り消し</button>' : '');
+  if (undoFn) t.querySelector('button').onclick = () => { undoFn(); t.remove(); };
+  document.body.appendChild(t);
+  toastTimer = setTimeout(() => t.remove(), 4000);
+}
+
+// ===== 記録タブ =====
+let recCat = null;            // 選択中のカテゴリ
+const SIZES = [40, 50, 60];   // サイズ区分（cm以上）
+const lureAcat = (l) => (l && l.acat) || 'その他';
+const lureTitle = (l) => `${l.brand?l.brand+' / ':''}${l.name}${l.weight?' '+l.weight+'g':''}`;
+const sizeChips = (cur, attr) => SIZES.map(s => `<button type="button" class="chip ${cur===s?'on':''}" ${attr}="${s}">${s}cm以上</button>`).join('');
+
+// ルアーボタン。full=true はモデル名を表示、false はカラー名のみ表示（見出しの下に並べる用）
+function lureBtn(l, counts, full){
+  const n = full ? `${l.name}${l.weight?' '+l.weight+'g':''}` : (l.color || '(カラー未設定)');
+  const d = full ? [l.brand, l.color].filter(Boolean).join(' / ') : '';
+  return `<button class="lure" data-id="${l.id}"><span class="c">${counts[l.id]||''}</span>
+    <div class="n">${swatch(l)}${esc(n)}</div>${d ? `<div class="d">${esc(d)}</div>` : ''}</button>`;
+}
+function panelHTML(counts){
+  if (!recCat) return '<div class="meta" style="margin:10px 0">カテゴリをタップすると、そのルアーの一覧が表示されます。</div>';
+  const secs = [], idx = {};
+  S.lures.filter(l => lureAcat(l) === recCat).forEach(l => {
+    const k = lureKey(l.brand, l.name, l.weight, '');
+    if (!(k in idx)){ idx[k] = secs.length; secs.push([]); }
+    secs[idx[k]].push(l);
+  });
+  if (!secs.length) return '<div class="meta" style="margin:10px 0">このカテゴリのルアーはありません。</div>';
+  let html = '', pend = [];
+  const flush = () => { if (pend.length){ html += `<div class="grid">${pend.join('')}</div>`; pend = []; } };
+  secs.forEach(sec => {
+    if (sec.length === 1) pend.push(lureBtn(sec[0], counts, true));
+    else { flush(); html += `<div class="sec">${esc(lureTitle(sec[0]))}</div><div class="grid">${sec.map(l => lureBtn(l, counts, false)).join('')}</div>`; }
+  });
+  flush();
+  return html;
+}
+
+function renderRec(){
+  const sess = S.sessions.find(s => s.id === S.activeSession);
+  if (!sess){
+    const places = [...new Set(S.sessions.map(s => s.place).filter(Boolean))];
+    $app.innerHTML = `
+      <div class="card"><h2>釣行を開始</h2>
+        <label>釣り場</label><input type="text" id="place" list="places" placeholder="例：○○フィッシングエリア">
+        <datalist id="places">${places.map(p=>`<option value="${esc(p)}">`).join('')}</datalist>
+        <p><button class="btn" id="start" style="width:100%;padding:14px">開始する</button></p>
+        <p class="meta">開始時刻が記録され、あとで「1時間あたり何匹」を集計できます。</p>
+      </div>`;
+    document.getElementById('start').onclick = () => {
+      const s = {id: uid(), place: document.getElementById('place').value.trim(), start: isoLocal(new Date()), end: null};
+      S.sessions.push(s); S.activeSession = s.id; save(); render();
+    };
+    return;
+  }
+  const mine = S.catches.filter(c => c.sessionId === sess.id).sort((a,b) => b.time.localeCompare(a.time));
+  const counts = {}, catCnt = {};
+  mine.forEach(c => { counts[c.lureId] = (counts[c.lureId]||0)+1; const a = lureAcat(lureById(c.lureId)); catCnt[a] = (catCnt[a]||0)+1; });
+  const last = mine[0];
+  $app.innerHTML = `
+    <div class="card top">
+      <div><div class="meta">${esc(sess.place||'釣り場未入力')} ・ ${sess.start.replace('T',' ')} 開始</div>
+        <div><span class="big">${mine.length}</span> 匹</div></div>
+      <button class="btn sub" id="end">釣行を終了</button>
+    </div>
+    <div class="cats">${ACATS.map(a => `<button class="catb ${recCat===a?'on':''}" data-cat="${esc(a)}">${esc(a)}${catCnt[a] ? `<span>${catCnt[a]}</span>` : ''}</button>`).join('')}</div>
+    ${panelHTML(counts)}
+    <div class="card" style="margin-top:14px"><div class="meta">直前の釣果（サイズ・備考を追加できます）</div>
+      ${last ? `<div style="margin:4px 0"><b>${hm(last.time)}</b> ${esc(lureLabel(lureById(last.lureId)))}</div>
+        <div class="chips">${sizeChips(last.size, 'data-sz')}</div>
+        <input type="text" id="lastNote" placeholder="備考（例：ネットイン、ヒット位置、放流直後）" value="${esc(last.note)}">`
+        : '<div class="meta" style="margin-top:4px">ルアーをタップして記録すると、ここに表示されます。</div>'}
+    </div>
+    <div class="card"><h2>今回の記録</h2>
+      ${mine.length ? mine.map(c => `<div class="row"><b>${hm(c.time)}</b><div class="g">${swatch(lureById(c.lureId))}${esc(lureLabel(lureById(c.lureId)))}
+        ${c.size ? `<span class="badge">${c.size}cm以上</span>` : ''}${c.note ? `<div class="meta">${esc(c.note)}</div>` : ''}</div>
+        <button class="btn sub sm" data-edit="${c.id}">編集</button></div>`).join('')
+        : '<div class="meta">まだ記録がありません。</div>'}
+    </div>`;
+  document.querySelectorAll('[data-cat]').forEach(b => b.onclick = () => { recCat = recCat === b.dataset.cat ? null : b.dataset.cat; renderRec(); });
+  document.querySelectorAll('.lure[data-id]').forEach(b => b.onclick = () => {
+    const rec = {id: uid(), sessionId: sess.id, lureId: b.dataset.id, time: isoLocal(new Date()), size: null, note: ''};
+    S.catches.push(rec); save(); if (navigator.vibrate) navigator.vibrate(30);
+    render();
+    toast(`${esc(lureLabel(lureById(rec.lureId)))} +1`, () => { S.catches = S.catches.filter(c => c.id !== rec.id); save(); render(); });
+  });
+  document.querySelectorAll('[data-sz]').forEach(b => b.onclick = () => {
+    last.size = last.size === +b.dataset.sz ? null : +b.dataset.sz; save(); renderRec();
+  });
+  document.getElementById('lastNote')?.addEventListener('input', (e) => { last.note = e.target.value; save(); });
+  document.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => openEdit(b.dataset.edit));
+  document.getElementById('end').onclick = async () => {
+    if (!await askConfirm('釣行を終了しますか？（終了時刻が記録されます）', '終了する')) return;
+    sess.end = isoLocal(new Date()); S.activeSession = null; save(); render();
+  };
+}
+
+// 釣果の編集（時刻・サイズ・備考・削除）
+function openEdit(id, onClose){
+  const c = S.catches.find(x => x.id === id); if (!c) return;
+  document.getElementById('sheet')?.remove();
+  const sh = document.createElement('div'); sh.id = 'sheet'; sh.className = 'sheet';
+  sh.innerHTML = `<div class="in"><div class="hd top"><b>釣果の編集</b><button class="btn" id="eclose">閉じる</button></div>
+    <div>${esc(lureLabel(lureById(c.lureId)))}</div>
+    <label>時刻</label><input type="time" id="et" value="${hm(c.time)}">
+    <label>サイズ</label><div class="chips" id="esz">${sizeChips(c.size, 'data-esz')}</div>
+    <label>備考</label><input type="text" id="en" value="${esc(c.note)}">
+    <p style="margin-top:20px"><button class="btn del" id="edel">この記録を削除</button></p></div>`;
+  document.body.appendChild(sh);
+  const close = () => { sh.remove(); if (onClose) onClose(); else render(); };
+  sh.querySelector('#eclose').onclick = close;
+  sh.querySelector('#et').onchange = (e) => { if (e.target.value){ c.time = ymd(c.time) + 'T' + e.target.value; save(); } };
+  sh.querySelector('#en').oninput = (e) => { c.note = e.target.value; save(); };
+  sh.querySelectorAll('[data-esz]').forEach(b => b.onclick = () => {
+    c.size = c.size === +b.dataset.esz ? null : +b.dataset.esz; save();
+    sh.querySelectorAll('[data-esz]').forEach(x => x.classList.toggle('on', c.size === +x.dataset.esz));
+  });
+  sh.querySelector('#edel').onclick = async () => {
+    if (!await askConfirm('この記録を削除しますか？', '削除する')) return;
+    S.catches = S.catches.filter(x => x.id !== id); save(); close();
+  };
+}
+
+// 過去の釣行の詳細（釣り場名の修正、各記録の編集・削除、釣行ごと削除）
+function openSession(id){
+  const s = S.sessions.find(x => x.id === id); if (!s) return;
+  document.getElementById('sheet')?.remove();
+  const list = S.catches.filter(c => c.sessionId === id).sort((a,b) => a.time.localeCompare(b.time));
+  const sh = document.createElement('div'); sh.id = 'sheet'; sh.className = 'sheet';
+  sh.innerHTML = `<div class="in"><div class="hd top"><b>${ymd(s.start)} の釣行</b><button class="btn" id="sclose">閉じる</button></div>
+    <div class="meta">${hm(s.start)}〜${s.end ? hm(s.end) : '(未終了)'} ・ ${list.length}匹</div>
+    <label for="sp">釣り場</label><input type="text" id="sp" value="${esc(s.place)}">
+    <h2 style="margin-top:16px">記録</h2>
+    ${list.length ? list.map(c => `<div class="row"><b>${hm(c.time)}</b><div class="g">${swatch(lureById(c.lureId))}${esc(lureLabel(lureById(c.lureId)))}
+      ${c.size ? `<span class="badge">${c.size}cm以上</span>` : ''}${c.note ? `<div class="meta">${esc(c.note)}</div>` : ''}</div>
+      <button class="btn sub sm" data-e="${c.id}">編集</button></div>`).join('') : '<div class="meta">記録はありません。</div>'}
+    <p style="margin-top:20px"><button class="btn del" id="sdel">この釣行を丸ごと削除</button></p></div>`;
+  document.body.appendChild(sh);
+  sh.querySelector('#sclose').onclick = () => { sh.remove(); render(); };
+  sh.querySelector('#sp').oninput = (e) => { s.place = e.target.value.trim(); save(); };
+  sh.querySelectorAll('[data-e]').forEach(b => b.onclick = () => openEdit(b.dataset.e, () => openSession(id)));
+  sh.querySelector('#sdel').onclick = async () => {
+    if (!await askConfirm(`この釣行と記録${list.length}件を削除します。元に戻せません。よろしいですか？`, '削除する')) return;
+    S.catches = S.catches.filter(c => c.sessionId !== id);
+    S.sessions = S.sessions.filter(x => x.id !== id);
+    if (S.activeSession === id) S.activeSession = null;
+    if (range === id) range = 'all';
+    save(); sh.remove(); render();
+  };
+}
+
+// ===== 集計タブ =====
+function inRange(c){
+  if (range === 'all') return true;
+  const d = ymd(c.time), now = new Date();
+  if (range === 'year') return d.startsWith(String(now.getFullYear()));
+  if (range === '30d'){ const lim = new Date(now.getTime()-30*864e5); return c.time >= isoLocal(lim); }
+  return c.sessionId === range; // 個別の釣行
+}
+function bars(rows, unit='匹'){
+  if (!rows.length) return '<div class="meta">データなし</div>';
+  const max = Math.max(...rows.map(r => r.v));
+  const tot = rows.reduce((a,r)=>a+r.v,0);
+  return rows.map(r => `<div class="bar"><div class="l" title="${esc(r.l)}">${r.sw||''}${esc(r.l)}</div><div class="t"><i style="width:${max?r.v/max*100:0}%"></i></div><div class="v">${r.v}${unit} <span class="meta">${Math.round(r.v/tot*100)}%</span></div></div>`).join('');
+}
+function group(list, keyFn, labelFn){
+  const m = new Map();
+  list.forEach(c => { const k = keyFn(c); m.set(k, (m.get(k)||0)+1); });
+  return [...m.entries()].map(([k,v]) => ({k, v, l: labelFn(k)})).sort((a,b) => b.v-a.v);
+}
+function renderStats(){
+  const list = S.catches.filter(inRange);
+  const sessIds = new Set(list.map(c => c.sessionId));
+  const sessions = S.sessions.filter(s => sessIds.has(s.id)).sort((a,b)=>b.start.localeCompare(a.start));
+  const opts = [['all','全期間'],['year','今年'],['30d','直近30日']];
+  $app.innerHTML = `
+    <div class="seg">${opts.map(([k,l]) => `<button data-r="${k}" class="${range===k?'on':''}">${l}</button>`).join('')}</div>
+    <div class="card"><label style="margin-top:0">釣行を指定</label>
+      <select id="rs"><option value="">（選択）</option>${[...S.sessions].sort((a,b)=>b.start.localeCompare(a.start)).map(s => `<option value="${s.id}" ${range===s.id?'selected':''}>${ymd(s.start)} ${esc(s.place||'釣り場未入力')}</option>`).join('')}</select></div>
+    ${list.length ? '' : '<div class="card empty">この期間の記録がありません。</div>'}
+    <div class="card"><div class="two"><div><div class="meta">合計</div><span class="big">${list.length}</span> 匹</div>
+      <div><div class="meta">釣行数</div><span class="big">${sessions.length}</span> 回</div></div>
+      <p class="meta" style="margin:8px 0 0">平均 ${sessions.length ? (list.length/sessions.length).toFixed(1) : '-'} 匹／釣行</p></div>
+    <div class="card"><h2>ルアー別ランキング</h2>${bars(group(list, c=>c.lureId, k=>lureLabel(lureById(k))).map(r=>({...r, sw: swatch(lureById(r.k))})))}</div>
+    <div class="card"><h2>モデル別（カラー合算）</h2>${bars(group(list, c=>{ const l = lureById(c.lureId)||{}; return [l.brand,l.name,l.weight].join('|'); },
+      k=>{ const [b,n,w] = k.split('|'); return n ? `${n}${w?' '+w+'g':''}${b?' ('+b+')':''}` : '(削除済みルアー)'; }))}</div>
+    <div class="card"><h2>カテゴリ別</h2>${bars(group(list, c=>lureAcat(lureById(c.lureId)), k=>k))}</div>
+    <div class="card"><h2>サイズ別（記録した分）</h2>${bars([60,50,40,0].map(s => ({l: s===60 ? '60cm以上' : s ? `${s}cm以上（${s+10}cm未満）` : 'サイズ指定なし', v: list.filter(c => (c.size||0) === s).length})).filter(r => r.v))}</div>
+    <div class="card"><h2>時間帯別（釣れた時刻）</h2>${hoursChart(list)}</div>
+    <div class="card"><h2>重さ別</h2>${bars(group(list, c=>(lureById(c.lureId)||{}).weight||'-', k=>k==='-'?'未入力':k+'g').sort((a,b)=>parseFloat(a.k)-parseFloat(b.k)||0))}</div>
+    <div class="card"><h2>カラー別</h2>${bars(group(list, c=>(lureById(c.lureId)||{}).color||'-', k=>k==='-'?'未入力':k))}</div>
+    <div class="card"><h2>タイプ別</h2>${bars(group(list, c=>(lureById(c.lureId)||{}).type||'-', k=>k==='-'?'未入力':k))}</div>
+    <div class="card"><h2>釣行ごとのペース</h2>${sessions.length ? sessions.map(s => {
+      const n = list.filter(c => c.sessionId === s.id).length;
+      const end = s.end || (list.filter(c=>c.sessionId===s.id).map(c=>c.time).sort().pop());
+      const hrs = end ? (new Date(end) - new Date(s.start))/36e5 : 0;
+      return `<div class="row"><div class="g"><b>${ymd(s.start)}</b> ${esc(s.place||'')}<div class="meta">${hm(s.start)}〜${s.end?hm(s.end):'(未終了)'}</div></div><div style="text-align:right"><b>${n}匹</b><div class="meta">${hrs>0.05?(n/hrs).toFixed(1)+'匹/時間':''}</div></div><button class="btn sub sm" data-sess="${s.id}">詳細</button></div>`;
+    }).join('') : '<div class="meta">データなし</div>'}</div>`;
+  document.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { range = b.dataset.r; renderStats(); });
+  document.querySelectorAll('[data-sess]').forEach(b => b.onclick = () => openSession(b.dataset.sess));
+  document.getElementById('rs').onchange = (e) => { if (e.target.value){ range = e.target.value; renderStats(); } };
+}
+function hoursChart(list){
+  if (!list.length) return '<div class="meta">データなし</div>';
+  const cnt = Array(24).fill(0); list.forEach(c => cnt[+c.time.slice(11,13)]++);
+  const hs = list.map(c => +c.time.slice(11,13));
+  const lo = Math.max(0, Math.min(...hs)-0), hi = Math.min(23, Math.max(...hs));
+  const max = Math.max(...cnt);
+  let out = '';
+  for (let h = lo; h <= hi; h++) out += `<div><span>${cnt[h]||''}</span><i class="${cnt[h]===max?'top':''}" style="height:${cnt[h]/max*80}%"></i><span>${h}</span></div>`;
+  return `<div class="hours">${out}</div><div class="meta">横軸：時（橙＝最多）</div>`;
+}
+
+// ===== ルアーリスト（lures-data.js：ルアーリスト.txt から生成） =====
+const CATALOG = window.LURE_CATALOG || [];
+// 記録画面のカテゴリ（この順に表示）
+const ACATS = ['ノア','バンナ','グラビティ','その他スプーン','クランク','ミノー','ボトム系','その他'];
+const ACAT_TYPE = {'ノア':'スプーン','バンナ':'スプーン','グラビティ':'スプーン','その他スプーン':'スプーン','クランク':'クランクベイト','ミノー':'ミノー','ボトム系':'ボトム・縦系','その他':'その他'};
+function appCat(catName, groupName, name){
+  if (/^(NOA|ノア)/i.test(name)) return 'ノア';
+  if (name.startsWith('バンナ')) return 'バンナ';
+  if (name.startsWith('グラビティ')) return 'グラビティ';
+  if (catName === 'スプーン') return 'その他スプーン';
+  if (groupName.includes('クランク')) return 'クランク';
+  if (groupName.includes('ミノー')) return 'ミノー';
+  if (groupName.includes('ボトム')) return 'ボトム系';
+  return 'その他';
+}
+// カラー名から色見本を推定（文章中で最初に出てくる色名を採用）
+const SWATCH_GUESS = [['蛍光ピンク','#ff6fb5'],['ピンク','#f08bb0'],['赤','#d9372b'],['レッド','#d9372b'],['オレンジ','#f28c28'],['蛍光グリーン','#7be04a'],['チャートグリーン','#a6d93a'],['チャート','#d8e04a'],['グリーン','#3aa655'],['オリーブ','#7a8240'],['からし','#c8a020'],['カラシ','#c8a020'],['イエロー','#f0d020'],['金','#d4a017'],['ゴールド','#d4a017'],['シルバー','#b8c2c8'],['ブルー','#3b82d6'],['ブラウン','#7a5230'],['茶','#7a5230'],['コッパー','#b5651d'],['カフェ','#a07850'],['ホワイト','#f4f4f4'],['白','#f4f4f4'],['ブラック','#222222'],['黒','#222222'],['ペレット','#6b5a3c']];
+function guessSwatch(text){
+  let best = null;
+  for (const [k, v] of SWATCH_GUESS){
+    const i = text.indexOf(k);
+    if (i >= 0 && (!best || i < best.i || (i === best.i && k.length > best.k.length))) best = {i, k, v};
+  }
+  return best ? best.v : '';
+}
+const lureKey = (b, n, w, c) => [b, n, w, c].join('|');
+const findLureByKey = (k) => S.lures.find(x => x.key === k);
+function ensureLure(o){
+  const k = lureKey(o.brand||'', o.name, o.weight||'', o.color||'');
+  let l = findLureByKey(k);
+  if (!l){
+    l = {id: uid(), key: k, brand: o.brand||'', name: o.name, weight: o.weight||'', color: o.color||'',
+         type: o.type||'', grp: o.grp||'', acat: o.acat||'その他', fromList: !!o.fromList, swatch: o.swatch ?? guessSwatch(o.color||'')};
+    S.lures.push(l);
+  }
+  return l;
+}
+// ルアーリストの全ルアーを登録済みにする（起動時に毎回実行。リスト更新後の追加分も反映）
+function syncCatalog(){
+  let changed = false;
+  CATALOG.forEach(c => c.groups.forEach(g => g.models.forEach(m => m.colors.forEach(col => {
+    const ac = appCat(c.name, g.name, m.name);
+    const before = findLureByKey(lureKey(m.brand, m.name, m.weight, col));
+    const l = ensureLure({brand:m.brand, name:m.name, weight:m.weight, color:col, acat:ac, fromList:true,
+                          type: c.name === 'スプーン' ? 'スプーン' : g.name, grp: g.name});
+    if (!before || l.acat !== ac || !l.fromList){ l.acat = ac; l.fromList = true; changed = true; }
+  }))));
+  // リストから消えたルアーは、記録がなければ登録も外す（記録があるものは集計のため残す）
+  if (CATALOG.length){
+    const keys = new Set();
+    CATALOG.forEach(c => c.groups.forEach(g => g.models.forEach(m => m.colors.forEach(col => keys.add(lureKey(m.brand, m.name, m.weight, col))))));
+    const used = new Set(S.catches.map(c => c.lureId));
+    const n0 = S.lures.length;
+    S.lures = S.lures.filter(l => !l.fromList || keys.has(l.key) || used.has(l.id));
+    if (S.lures.length !== n0) changed = true;
+  }
+  S.lures.forEach(l => { if (!l.acat){ l.acat = 'その他'; changed = true; } });
+  if (changed) save();
+}
+
+// ===== ルアータブ =====
+function renderLures(){
+  const cnt = {}; S.catches.forEach(c => cnt[c.lureId] = (cnt[c.lureId]||0)+1);
+  const own = S.lures.filter(l => !l.fromList);
+  $app.innerHTML = `
+    <div class="card"><h2>リストにないルアーを追加</h2>
+      <label>名前（必須）</label><input type="text" id="mn">
+      <div class="two">
+        <div><label>ブランド</label><input type="text" id="mb"></div>
+        <div><label>カテゴリ</label><select id="ma">${ACATS.map(a => `<option ${a==='その他'?'selected':''}>${a}</option>`).join('')}</select></div>
+        <div><label>重さ (g)</label><input type="number" id="mw" step="0.1" min="0" inputmode="decimal"></div>
+        <div><label>カラー</label><input type="text" id="mc"></div>
+      </div>
+      <p><button class="btn" id="madd" style="width:100%">追加</button></p>
+      <p class="meta" style="margin-bottom:0">ルアーリスト.txt のルアーは登録済みです。リストを更新する場合は「リスト更新.ps1」を実行してください。</p></div>
+    ${own.length ? `<div class="card"><h2>追加したルアー（${own.length}）</h2>${own.map(l => `<div class="row"><div class="g">${swatch(l)}<b>${esc(l.name)}${l.weight?' '+esc(l.weight)+'g':''}</b>
+      <div class="meta">${esc([l.brand, l.color, l.acat].filter(Boolean).join(' / '))} ・ 累計${cnt[l.id]||0}匹</div></div>
+      <button class="btn del sm" data-rm="${l.id}">削除</button></div>`).join('')}</div>` : ''}
+    <div class="card"><h2>登録ルアー数（${S.lures.length}）</h2>
+      ${ACATS.map(a => { const ls = S.lures.filter(l => lureAcat(l) === a);
+        return `<div class="row"><div class="g">${esc(a)}</div><div>${ls.length}種 ・ 累計${ls.reduce((s,l)=>s+(cnt[l.id]||0),0)}匹</div></div>`; }).join('')}</div>`;
+  document.getElementById('madd').onclick = () => {
+    const name = document.getElementById('mn').value.trim();
+    if (!name) return toast('名前を入力してください');
+    const a = document.getElementById('ma').value;
+    ensureLure({brand: document.getElementById('mb').value.trim(), name, weight: document.getElementById('mw').value,
+      color: document.getElementById('mc').value.trim(), acat: a, type: ACAT_TYPE[a]});
+    save(); renderLures(); toast('追加しました');
+  };
+  document.querySelectorAll('[data-rm]').forEach(b => b.onclick = async () => {
+    const n = cnt[b.dataset.rm] || 0;
+    if (!await askConfirm(n ? `このルアーの記録が${n}件あります。削除すると集計で「削除済み」になります。それでも削除しますか？` : 'このルアーを削除しますか？', '削除する')) return;
+    S.lures = S.lures.filter(l => l.id !== b.dataset.rm); save(); renderLures();
+  });
+}
+
+// ===== データタブ =====
+// 確認ダイアログ（ブラウザ標準の confirm は公開ページ内では動かないため、ページ内で表示する）
+function askConfirm(msg, okLabel = 'OK'){
+  return new Promise((res) => {
+    const d = document.createElement('div'); d.id = 'dlg'; d.className = 'dlg';
+    d.innerHTML = `<div class="box"><p></p><div class="actions"><button class="btn sub" data-v="0">キャンセル</button><button class="btn" data-v="1">${esc(okLabel)}</button></div></div>`;
+    d.querySelector('p').textContent = msg;
+    d.onclick = (e) => { const b = e.target.closest('[data-v]'); if (!b) return; d.remove(); res(b.dataset.v === '1'); };
+    document.body.appendChild(d);
+  });
+}
+// ファイル保存。公開ページでは downloads 機能、手元で開いた場合は通常のダウンロードを使う
+async function dl(name, text, type){
+  try {
+    const d = await window.claude?.use?.('downloads');
+    if (d){ await d.save({filename: name, data: text}); return; }
+  } catch(e){ if (e && e.code === 'declined') return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text],{type})); a.download = name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+async function restoreFrom(text){
+  try {
+    const d = JSON.parse(text);
+    if (!Array.isArray(d.lures) || !Array.isArray(d.sessions) || !Array.isArray(d.catches)) throw new Error('形式が違います');
+    if (!await askConfirm('現在のデータを、バックアップの内容で置き換えます。よろしいですか？', '復元する')) return;
+    S = {lures:d.lures, sessions:d.sessions, catches:d.catches, activeSession:d.activeSession||null};
+    syncCatalog(); save(); toast('復元しました'); render();
+  } catch(err){ toast('読み込みに失敗しました：' + err.message); }
+}
+function renderData(){
+  $app.innerHTML = `
+    <div class="card"><h2>バックアップ</h2>
+      <p class="meta">記録はこの端末のブラウザ内にのみ保存されています。ブラウザのデータを消すと失われるため、定期的に保存してください。</p>
+      <p><button class="btn" id="j" style="width:100%">バックアップを保存（JSON）</button></p>
+      <p><button class="btn sub" id="cp" style="width:100%">バックアップをコピー（保存できない場合）</button></p>
+      <p><button class="btn sub" id="c" style="width:100%">CSVで書き出し（Excel用）</button></p>
+      <p class="meta">現在：ルアー${S.lures.length}種 / 釣行${S.sessions.length}回 / 記録${S.catches.length}件</p></div>
+    <div class="card"><h2>復元</h2>
+      <p><button class="btn sub" id="i" style="width:100%">ファイルから復元</button><input type="file" id="f" accept=".json,application/json" class="hidden"></p>
+      <label for="pt">コピーしたバックアップを貼り付け</label>
+      <textarea id="pt" rows="3" placeholder="ここに貼り付け"></textarea>
+      <p><button class="btn sub" id="pi" style="width:100%">貼り付けた内容から復元</button></p></div>`;
+  document.getElementById('j').onclick = () => dl('trout-backup-'+isoLocal(new Date()).slice(0,10)+'.json', JSON.stringify(S), 'application/json');
+  document.getElementById('cp').onclick = async () => {
+    try { await navigator.clipboard.writeText(JSON.stringify(S)); toast('コピーしました。メモ等に貼り付けて保管してください'); }
+    catch(e){ const t = document.getElementById('pt'); t.value = JSON.stringify(S); t.select(); toast('下の欄に表示しました。全選択してコピーしてください'); }
+  };
+  document.getElementById('c').onclick = () => {
+    const q = (x) => '"'+String(x??'').replace(/"/g,'""')+'"';
+    const rows = [...S.catches].sort((a,b)=>a.time.localeCompare(b.time)).map(c => {
+      const l = lureById(c.lureId)||{}, s = S.sessions.find(x=>x.id===c.sessionId)||{};
+      return [c.time.replace('T',' '), s.place, l.acat, l.brand, l.name, l.type, l.weight, l.color, c.size ? c.size+'cm以上' : '', c.note].map(q).join(','); });
+    dl('trout-catches.csv', '﻿'+['日時,釣り場,カテゴリ,ブランド,ルアー,タイプ,重さg,カラー,サイズ,備考', ...rows].join('\r\n'), 'text/csv');
+  };
+  document.getElementById('i').onclick = () => document.getElementById('f').click();
+  document.getElementById('f').onchange = async (e) => { const f = e.target.files[0]; if (f) restoreFrom(await f.text()); };
+  document.getElementById('pi').onclick = () => { const v = document.getElementById('pt').value.trim(); if (v) restoreFrom(v); else toast('貼り付ける内容がありません'); };
+}
+
+// ===== 共通 =====
+function render(){
+  document.querySelectorAll('nav button').forEach(b => b.classList.toggle('on', b.dataset.t === tab));
+  ({rec:renderRec, stats:renderStats, lures:renderLures, data:renderData})[tab]();
+}
+document.querySelectorAll('nav button').forEach(b => b.onclick = () => { tab = b.dataset.t; window.scrollTo(0,0); render(); });
+syncCatalog();
+render();
+</script>
+</body>
+</html>
